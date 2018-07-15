@@ -1,0 +1,1 @@
+protoc -I proto proto/calculator.proto --go_out=plugins=grpc:protogo/calculator
