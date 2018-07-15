@@ -64,25 +64,37 @@ func (gs *GreetServer) LongGreet(stream pb.GreetService_LongGreetServer) error {
 	}
 }
 
-// Bidirectional call streaming
+// GreetEveryOne - Bidirectional call streaming
 func (gs *GreetServer) GreetEveryOne(streamin pb.GreetService_GreetEveryOneServer) error {
 	for {
 		in, err := streamin.Recv()
+
+		// Client finish send message to the server
 		if err == io.EOF {
 			return nil
 		}
+
+		// Error occured
 		if err != nil {
 			return err
 		}
+
+		// Extract request message
+		fmt.Printf("Client send request %+v\n", in.GetGreeting())
 		fname := in.GetGreeting().GetFirstName()
 		lname := in.GetGreeting().GetLastName()
-		msg := fmt.Sprintf("Hi, %s %s nice to meet you", fname, lname)
+
+		// Construct the message response and set to the protobuf response type
+		msg := fmt.Sprintf("Hi %s %s nice to meet you", fname, lname)
 		res := &pb.GreetEveryOneResponse{
 			Result: msg,
 		}
+
+		// Send the response to the client
 		if err := streamin.Send(res); err != nil {
 			return err
 		}
+		time.Sleep(2 * time.Second)
 	}
 }
 

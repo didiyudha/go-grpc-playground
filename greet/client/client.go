@@ -20,7 +20,8 @@ func main() {
 	client := pb.NewGreetServiceClient(cc)
 	// unaryCall(client)
 	// serverStreamingCall(client)
-	clientStreamingCall(client)
+	// clientStreamingCall(client)
+	bidirectionalCall(client)
 }
 
 func unaryCall(client pb.GreetServiceClient) {
@@ -141,4 +142,60 @@ func clientStreamingCall(client pb.GreetServiceClient) {
 		log.Fatalln(err)
 	}
 	log.Println("Response server: ", reply.GetResult())
+}
+
+func bidirectionalCall(client pb.GreetServiceClient) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	stream, err := client.GreetEveryOne(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				close(waitc)
+				return
+			}
+			if err != nil {
+				log.Fatalf("failed to receive a note: %+v", err)
+			}
+			log.Printf("got message %s", in.GetResult())
+		}
+	}()
+
+	names := []struct {
+		FirstName string
+		LastName  string
+	}{
+		{
+			FirstName: "Didi",
+			LastName:  "Yudha",
+		}, {
+			FirstName: "Ekoi",
+			LastName:  "Budi",
+		}, {
+			FirstName: "Dwi",
+			LastName:  "Susanti",
+		}, {
+			FirstName: "Yance",
+			LastName:  "Parisman",
+		},
+	}
+	for _, name := range names {
+		req := &pb.GreetEveryOneRequest{
+			Greeting: &pb.Greeting{
+				FirstName: name.FirstName,
+				LastName:  name.LastName,
+			},
+		}
+		if err := stream.Send(req); err != nil {
+			log.Fatalln(err)
+		}
+	}
+	stream.CloseSend()
+	<-waitc
 }
