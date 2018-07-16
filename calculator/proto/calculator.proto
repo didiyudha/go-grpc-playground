@@ -9,6 +9,19 @@ message CalculatorResponse {
     double total = 1;
 }
 
+message PrimeNumberDecompositionRequest {
+    uint64 n = 1;
+}
+
+message PrimeNumberDecompositionResponse {
+    uint64 result = 1;
+}
+
 service CalculatorService {
+
+    // Unary
     rpc Add (CalculatorRequest) returns (CalculatorResponse) {};
+
+    // Server streaming
+    rpc PrimeNumberDecomposition (PrimeNumberDecompositionRequest) returns (stream PrimeNumberDecompositionResponse) {};
 }
