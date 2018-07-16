@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	pb "github.com/didiyudha/go-grpc-playground/calculator/protogo/calculator"
 	"google.golang.org/grpc"
@@ -15,12 +16,35 @@ type CalculatroServer struct{}
 
 // Add operation implementation
 func (*CalculatroServer) Add(ctx context.Context, req *pb.CalculatorRequest) (*pb.CalculatorResponse, error) {
+	fmt.Printf("Server receive request: %+v\n", req)
 	firstNumber := req.GetFirstNumber()
 	secondNumber := req.GetSecondNumber()
 	res := &pb.CalculatorResponse{
 		Total: (firstNumber + secondNumber),
 	}
+	fmt.Printf("Server send response: %+v\n", res)
 	return res, nil
+}
+
+// PrimeNumberDecomposition - server streaming
+func (*CalculatroServer) PrimeNumberDecomposition(req *pb.PrimeNumberDecompositionRequest, stream pb.CalculatorService_PrimeNumberDecompositionServer) error {
+	n := req.GetN()
+	var k uint64 = 2
+	for n > 1 {
+		if n%k == 0 {
+			res := &pb.PrimeNumberDecompositionResponse{
+				Result: k,
+			}
+			if err := stream.Send(res); err != nil {
+				return err
+			}
+			n = n / k
+		} else {
+			k++
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return nil
 }
 
 func main() {
