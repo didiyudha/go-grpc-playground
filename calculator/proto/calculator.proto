@@ -34,5 +34,5 @@ service CalculatorService {
     rpc PrimeNumberDecomposition (PrimeNumberDecompositionRequest) returns (stream PrimeNumberDecompositionResponse) {};
 
     // Client streaming
-    rpc Average (AverageRuequest) returns (AverageResponse) {};
+    rpc Average (stream AverageRuequest) returns (AverageResponse) {};
 }
