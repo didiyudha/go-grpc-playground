@@ -17,6 +17,14 @@ message PrimeNumberDecompositionResponse {
     uint64 result = 1;
 }
 
+message AverageRuequest {
+    uint64 number = 1;
+}
+
+message AverageResponse {
+    double result = 1;
+}
+
 service CalculatorService {
 
     // Unary
@@ -24,4 +32,7 @@ service CalculatorService {
 
     // Server streaming
     rpc PrimeNumberDecomposition (PrimeNumberDecompositionRequest) returns (stream PrimeNumberDecompositionResponse) {};
+
+    // Client streaming
+    rpc Average (AverageRuequest) returns (AverageResponse) {};
 }
