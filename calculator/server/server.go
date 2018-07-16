@@ -70,6 +70,30 @@ func (*CalculatroServer) Average(stream pb.CalculatorService_AverageServer) erro
 	}
 }
 
+// FindMax - find maximum bidirectional streaming
+func (*CalculatroServer) FindMax(stream pb.CalculatorService_FindMaxServer) error {
+	var max int64 = -10000000
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		n := in.GetN()
+		if n > max {
+			max = n
+		}
+		res := &pb.FindMaxResponse{
+			Max: max,
+		}
+		if err := stream.Send(res); err != nil {
+			return err
+		}
+	}
+}
+
 func main() {
 	var calculatorServer CalculatroServer
 	conn, err := net.Listen("tcp", "localhost:50052")

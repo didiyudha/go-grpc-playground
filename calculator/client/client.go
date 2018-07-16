@@ -24,7 +24,8 @@ func main() {
 	client := pb.NewCalculatorServiceClient(clientConn)
 	// Add(client)
 	// PrimeNumberDecomposition(client)
-	Average(client)
+	// Average(client)
+	FindMax(client)
 }
 
 // Add - Unary call
@@ -89,4 +90,48 @@ func Average(client pb.CalculatorServiceClient) {
 		log.Fatalln(err)
 	}
 	fmt.Println("Avg: ", strconv.FormatFloat(reply.GetResult(), 'f', 2, 64))
+}
+
+func FindMax(client pb.CalculatorServiceClient) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	stream, err := client.FindMax(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				close(waitc)
+				return
+			}
+			if err != nil {
+				log.Fatalln(err)
+			}
+			log.Println("Maximum: ", res.GetMax())
+		}
+	}()
+	numbers := []int64{
+		10,
+		5,
+		100,
+		7,
+		6,
+		101,
+		1000,
+	}
+	for _, n := range numbers {
+		r := &pb.FindMaxRequest{
+			N: n,
+		}
+		log.Println("Client send: ", n)
+		if err := stream.Send(r); err != nil {
+			log.Fatalln(err)
+		}
+		time.Sleep(2 * time.Second)
+	}
+	stream.CloseSend()
+	<-waitc
 }

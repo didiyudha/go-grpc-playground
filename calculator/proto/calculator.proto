@@ -26,11 +26,11 @@ message AverageResponse {
 }
 
 message FindMaxRequest {
-
+    int64 n = 1;
 }
 
 message FindMaxResponse {
-
+    int64 max = 1;
 }
 
 service CalculatorService {
