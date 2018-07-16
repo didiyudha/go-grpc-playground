@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 	"time"
 
 	pb "github.com/didiyudha/go-grpc-playground/calculator/protogo/calculator"
@@ -22,7 +23,8 @@ func main() {
 
 	client := pb.NewCalculatorServiceClient(clientConn)
 	// Add(client)
-	PrimeNumberDecomposition(client)
+	// PrimeNumberDecomposition(client)
+	Average(client)
 }
 
 // Add - Unary call
@@ -63,4 +65,28 @@ func PrimeNumberDecomposition(client pb.CalculatorServiceClient) {
 		}
 		fmt.Println(res.GetResult())
 	}
+}
+
+// Average - client streaming calls
+func Average(client pb.CalculatorServiceClient) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	stream, err := client.Average(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	for i := 1; i <= 10; i++ {
+		req := &pb.AverageRuequest{
+			Number: uint64(i),
+		}
+		if err := stream.Send(req); err != nil {
+			log.Fatalln(err)
+		}
+	}
+	reply, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println("Avg: ", strconv.FormatFloat(reply.GetResult(), 'f', 2, 64))
 }
