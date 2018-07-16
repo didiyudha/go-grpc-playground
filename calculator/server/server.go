@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -45,6 +46,28 @@ func (*CalculatroServer) PrimeNumberDecomposition(req *pb.PrimeNumberDecompositi
 		time.Sleep(1 * time.Second)
 	}
 	return nil
+}
+
+// Average of total amount that client send to the server
+func (*CalculatroServer) Average(stream pb.CalculatorService_AverageServer) error {
+	var n int
+	var total uint64
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			avg := float64(total) / float64(n)
+			res := &pb.AverageResponse{
+				Result: avg,
+			}
+			return stream.SendAndClose(res)
+		}
+		if err != nil {
+			return err
+		}
+		temp := req.GetNumber()
+		total += temp
+		n++
+	}
 }
 
 func main() {
