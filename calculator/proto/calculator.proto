@@ -25,6 +25,14 @@ message AverageResponse {
     double result = 1;
 }
 
+message FindMaxRequest {
+
+}
+
+message FindMaxResponse {
+
+}
+
 service CalculatorService {
 
     // Unary
@@ -35,4 +43,7 @@ service CalculatorService {
 
     // Client streaming
     rpc Average (stream AverageRuequest) returns (AverageResponse) {};
+
+    // Bidireactional streaming
+    rpc FindMax (stream FindMaxRequest) returns (stream FindMaxResponse) {};
 }
