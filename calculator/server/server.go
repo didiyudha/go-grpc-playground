@@ -20,6 +20,12 @@ type CalculatroServer struct{}
 
 // Add operation implementation
 func (*CalculatroServer) Add(ctx context.Context, req *pb.CalculatorRequest) (*pb.CalculatorResponse, error) {
+	time.Sleep(time.Duration(2) * time.Second)
+
+	if ctx.Err() == context.DeadlineExceeded {
+		fmt.Println("client cancel the the request")
+		return nil, status.Errorf(codes.DeadlineExceeded, "Client cancelled, abandoning.")
+	}
 	fmt.Printf("Server receive request: %+v\n", req)
 	firstNumber := req.GetFirstNumber()
 	secondNumber := req.GetSecondNumber()

@@ -28,7 +28,8 @@ func main() {
 	// PrimeNumberDecomposition(client)
 	// Average(client)
 	// FindMax(client)
-	doErrorUnary(client)
+	// doErrorUnary(client)
+	doErrorTimeoutCall(client)
 }
 
 // Add - Unary call
@@ -168,4 +169,30 @@ func doErrorCall(c pb.CalculatorServiceClient, n int32) {
 		}
 	}
 	fmt.Printf("Result of square root of %v: %v\n", n, res.GetNumberRoot())
+}
+
+func doErrorTimeoutCall(client pb.CalculatorServiceClient) {
+	req := pb.CalculatorRequest{
+		FirstNumber:  1,
+		SecondNumber: 2,
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	res, err := client.Add(ctx, &req)
+	if err != nil {
+		respErr, ok := status.FromError(err)
+		if ok {
+			// actual error from gRPC (user error)
+			fmt.Printf("Error message from server: %v\n", respErr.Message())
+			fmt.Println(respErr.Code())
+			if respErr.Code() == codes.InvalidArgument {
+				fmt.Println("We probably sent a negative number!")
+				return
+			}
+		} else {
+			log.Fatalf("Big Error calling SquareRoot: %v", err)
+			return
+		}
+	}
+	fmt.Println(res.GetTotal())
 }
