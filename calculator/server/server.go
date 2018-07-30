@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net"
 	"time"
 
 	pb "github.com/didiyudha/go-grpc-playground/calculator/protogo/calculator"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // CalculatroServer - calculator server type
@@ -92,6 +95,20 @@ func (*CalculatroServer) FindMax(stream pb.CalculatorService_FindMaxServer) erro
 			return err
 		}
 	}
+}
+
+func (*CalculatroServer) SquareRoot(ctx context.Context, req *pb.SquareRootRequest) (*pb.SquareRootResponse, error) {
+	fmt.Println("Received SquareRoot RPC")
+	number := req.GetNumber()
+	if number < 0 {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			fmt.Sprintf("Received a negative number: %v", number),
+		)
+	}
+	return &pb.SquareRootResponse{
+		NumberRoot: math.Sqrt(float64(number)),
+	}, nil
 }
 
 func main() {
